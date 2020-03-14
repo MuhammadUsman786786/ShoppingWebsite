@@ -13,10 +13,7 @@ export default class AppProvider extends React.Component {
 		this.state = {
 			categories: [],
 			products: [],
-			cart: {
-				'12123': 8,
-				'290298': 6
-			}
+			cart: {}
 		}
 	}
 	

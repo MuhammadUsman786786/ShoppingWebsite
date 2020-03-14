@@ -47,15 +47,15 @@ const TableBody = () => {
 			}
 			const {id, name, filename, price} = cartItem || {}
 			const quantity = cart[cartItemKey]
-			const itemAccumulativePrice = quantity * cart[cartItemKey]
-			netTotalPrice=netTotalPrice+itemAccumulativePrice
+			const itemAccumulativePrice = quantity * price
+			netTotalPrice = netTotalPrice + itemAccumulativePrice
 			return <tr key={ _.toString(id) }>
 				<td style={ {width: 100, height: 100} }>
 					<Card.Img variant="top" src={ `/images/products/${ filename }-1.png` } style={ {margin: 0, padding: 0} }/>
 				</td>
 				<td className='table-item'>{ name }</td>
 				<td className='table-item'>{ cart[cartItemKey] }</td>
-				<td className='table-item'>{ price }</td>
+				<td className='table-item'>{ (price) }</td>
 				<td className='table-item'>{ itemAccumulativePrice }</td>
 				<td className='table-item'>
 					<Button variant="outline-secondary" size={ 'sm' } onClick={ () => removeFromCart(cartItem) }>Remove</Button>

@@ -1,13 +1,15 @@
 import React, {useContext, useState} from 'react'
 import * as bs from 'react-bootstrap'
 import {Button} from 'react-bootstrap'
-import {useRouteMatch} from 'react-router-dom'
+import {useHistory, useRouteMatch} from 'react-router-dom'
+
 import AppContext from './context'
 import './product-detail.scss'
 import * as _ from 'lodash'
 
 export default function Details() {
 	let match = useRouteMatch()
+	const history=useHistory()
 	let [ hidden, setHidden ] = useState('-1')
 	const {params: {productId: currentProductId} = {}} = match || {}
 	const state = useContext(AppContext)
@@ -86,7 +88,10 @@ export default function Details() {
 				{ item.description }
 			</p>
 			<div className='card_button_container'>
-				<Button onClick={ ()=>addToCart(item) }>Add To cart</Button>
+				<Button onClick={ () => {
+					addToCart(item)
+					history.push('/cart')
+				} }>Add To cart</Button>
 			</div>
 		</div>
 	)
