@@ -1,0 +1,29 @@
+@import "../node_modules/bootstrap/scss/functions";
+@import "../node_modules/bootstrap/scss/variables";
+@import "../node_modules/bootstrap/scss/mixins";
+
+$primary:       rgb(20, 76, 129);
+$secondary:     $gray-600;
+$success:       rgb(15, 158, 58);
+$info:          $cyan;
+$warning:       $yellow;
+$danger:        rgb(151, 20, 20);
+$light:         $gray-100;
+$dark:          $gray-800;
+
+
+@import "../node_modules/bootstrap/scss/bootstrap.scss";
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
