@@ -11,6 +11,7 @@ import RightSide from "./right-side";
 import FooterContainer from "./footer";
 import Details from './product-detail';
 import Cart from "./cart";
+import Checkout from "./Checkout";
 
 function App(props) {
   return (
@@ -52,6 +53,9 @@ function App(props) {
                 </Route>
                 <Route path='/category/:catName'>
                   <Home />
+                </Route>
+                <Route path='/checkout'>
+                  <Checkout />
                 </Route>
               </Switch>
             </bs.Col>

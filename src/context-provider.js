@@ -34,6 +34,21 @@ export default class AppProvider extends React.Component {
 		this.setState({cart: {...cart, [id]: prevQuantity + 1}})
 	}
 	
+	getCartTotal = () => {
+		const {products = [], cart = {}} = this.state
+		const productsMap = _.keyBy(products, 'id')
+		const cartItemKeys = _.keys(cart)
+		let netTotalPrice = 0
+		_.map(cartItemKeys, (cartItemKey, index) => {
+			const quantity = cart[cartItemKey]
+			const cartItem = productsMap[cartItemKey] || {}
+			const {price} = cartItem || {}
+			const itemAccumulativePrice = quantity * price
+			netTotalPrice = netTotalPrice + itemAccumulativePrice
+		})
+		return netTotalPrice
+	}
+	
 	removeFromCart = (item) => {
 		const {id} = item || {}
 		const {cart = {}} = this.state
@@ -47,6 +62,7 @@ export default class AppProvider extends React.Component {
 				...this.state,
 				addToCart: this.addToCart,
 				removeFromCart: this.removeFromCart,
+				getCartTotal: this.getCartTotal,
 			} }>
 				<App/>
 			</AppContext.Provider>

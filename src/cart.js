@@ -1,8 +1,9 @@
 import React, {useContext} from "react";
-import {Button, Card, Table} from "react-bootstrap";
+import {default as bs, Button, Card, Table} from "react-bootstrap";
 import * as _ from 'lodash'
 import './cart.scss'
 import AppContext from "./context";
+import {useHistory} from "react-router-dom";
 
 const TableHeader = () => {
 	return <thead>
@@ -33,11 +34,11 @@ const TableBody = () => {
 	const globalState = useContext(AppContext)
 	const {
 		products, cart, removeFromCart = () => {
+		}, getCartTotal = () => {
 		}
 	} = globalState || {}
 	const productsMap = _.keyBy(products, 'id')
 	const cartItemKeys = _.keys(cart)
-	let netTotalPrice=0
 	return <tbody>
 	{
 		_.map(cartItemKeys, (cartItemKey, index) => {
@@ -48,7 +49,6 @@ const TableBody = () => {
 			const {id, name, filename, price} = cartItem || {}
 			const quantity = cart[cartItemKey]
 			const itemAccumulativePrice = quantity * price
-			netTotalPrice = netTotalPrice + itemAccumulativePrice
 			return <tr key={ _.toString(id) }>
 				<td style={ {width: 100, height: 100} }>
 					<Card.Img variant="top" src={ `/images/products/${ filename }-1.png` } style={ {margin: 0, padding: 0} }/>
@@ -63,7 +63,7 @@ const TableBody = () => {
 			</tr>
 		})
 	}
-	<TableFooter title={ 'Title' } subtitle={ netTotalPrice }/>
+	<TableFooter title={ 'Title' } subtitle={ getCartTotal() }/>
 	<TableFooter/>
 	</tbody>
 }
@@ -71,6 +71,7 @@ const TableBody = () => {
 const Cart = (props) => {
 	const globalState = useContext(AppContext)
 	const {cart = {}} = globalState || {}
+	const history=useHistory()
 	return (
 		<div className='cart-container'>
 			<h2 className='header-title'>Shopping Cart</h2>
@@ -80,6 +81,12 @@ const Cart = (props) => {
 						<TableHeader/>
 						<TableBody/>
 					</Table>
+			}
+			{
+				!_.isEmpty(cart) &&
+				<Button type="submit" className="w-25 btn btn-success" block size={ 'md' } onClick={()=>history.push('/checkout')}>
+					Checkout
+				</Button>
 			}
 		</div>
 	)
