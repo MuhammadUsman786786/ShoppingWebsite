@@ -6,6 +6,7 @@ import {Field, Form, Formik} from 'formik'
 import * as _ from 'lodash'
 import axios from 'axios'
 import CreditCardInput from 'react-credit-card-input';
+import {emptyValidation} from "./validation";
 
 /**
  * The form layout/html.
@@ -13,7 +14,7 @@ import CreditCardInput from 'react-credit-card-input';
  */
 
 const PaymentForm = props => {
-	const {total,form: {isSubmitting = false} = {}} = props || {}
+	const {total, form: {isSubmitting = false} = {}} = props || {}
 	return <Form>
 		<Container>
 			<Row>
@@ -21,12 +22,12 @@ const PaymentForm = props => {
 					<Card>
 						<Card.Header className="text-left font-weight-bold">Shipping</Card.Header>
 						<Card.Body>
-							<Input title="Name:" name="name" type="text"/>
-							<Input title="Address 1:" name="address1" type="text"/>
-							<Input title="Address 2:" name="address2" type="text"/>
-							<Input title="City:" name="city" type="text"/>
-							<Input title="State:" name="state" type="text"/>
-							<Input title="Zipcode:" name="zipcode" type="text"/>
+							<Input prefix="Name:" title="Name:" name="name" type="text" validator={emptyValidation}/>
+							<Input prefix="Address 1:" title="Address 1:" name="address1" type="text" validator={emptyValidation}/>
+							<Input prefix="Address 2:" title="Address 2:" name="address2" type="text" validator={emptyValidation}/>
+							<Input prefix="City:" title="City:" name="city" type="text" validator={emptyValidation}/>
+							<Input prefix="State:" title="State:" name="state" type="text" validator={emptyValidation}/>
+							<Input prefix="Zipcode:" title="Zipcode:" name="zipcode" type="text" validator={emptyValidation}/>
 						</Card.Body>
 					</Card>
 				</Col>
@@ -48,7 +49,7 @@ const PaymentForm = props => {
 					</Card>
 					<span style={ {display: 'inherit', textAlign: 'left'} }>
 						You will be charged for
-						<span className="font-weight-bold">  {total}$</span>
+						<span className="font-weight-bold">  { total }$</span>
 					</span>
 				</Col>
 			</Row>
@@ -66,7 +67,7 @@ const CheckoutController = props => {
 	return (
 		<Formik
 			initialValues={ {
-				total:total,
+				total: total,
 				name: 'Conrad Fox',
 				address1: '1234',
 				address2: '5678',
@@ -93,6 +94,7 @@ const CheckoutController = props => {
 				return errors
 			} }
 			onSubmit={ async (values, actions) => {
+				console.log('onsubmit')
 				actions.setSubmitting(true)
 				setTimeout(async () => {
 					const {total, name, address1, address2, city, state, zipcode,} = values || {}
@@ -116,24 +118,28 @@ const CheckoutController = props => {
 };
 
 const Input = (props) => {
-	return <Field name={ props.name }>{ rProps => (
-		<bs.Form.Group>
-			{ props.title &&
-			<div style={ {float: 'left'} }>
-				<bs.Form.Label className='font-weight-bold'>{ props.title }</bs.Form.Label>
-			</div>
-			}
-			<bs.Form.Control
-				disabled={ props.disabled || false }
-				type={ props.type }
-				placeholder={ props.placeholder }
-				{ ...rProps.field }
-			/>
-			{ rProps.touched && rProps.error &&
-			<div className="text-danger text-left">{ rProps.meta.error }</div>
-			}
-		</bs.Form.Group>
-	) }</Field>
+	const {prefix,validator=()=>{}}=props||{}
+	return <Field name={ props.name } >{ rProps => {
+		const {field:{value}={},form={}}=rProps||{}
+		const message=validator(value,prefix)
+		return (<bs.Form.Group>
+				{ props.title &&
+				<div style={ {float: 'left'} }>
+					<bs.Form.Label className='font-weight-bold'>{ props.title }</bs.Form.Label>
+				</div>
+				}
+				<bs.Form.Control
+					disabled={ props.disabled || false }
+					type={ props.type }
+					placeholder={ props.placeholder }
+					{ ...rProps.field }
+				/>
+				{ !_.isEmpty(message) &&form.touched[props.name] &&
+				<div className="text-danger text-left">{ message }</div>
+				}
+			</bs.Form.Group>
+		)
+	} }</Field>
 }
 
 
