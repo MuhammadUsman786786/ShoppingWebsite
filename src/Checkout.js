@@ -3,10 +3,20 @@ import AppContext from "./context";
 import * as bs from 'react-bootstrap'
 import {Card, Col, Container, Row} from 'react-bootstrap'
 import {Field, Form, Formik} from 'formik'
+import CreditCardInput from 'react-credit-card-input';
 import * as _ from 'lodash'
 import axios from 'axios'
-import CreditCardInput from 'react-credit-card-input';
-import {emptyValidation} from "./validation";
+import * as Yup from 'yup';
+
+const checkoutSchema = Yup.object().shape({
+	name: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Name is Required'),
+	address1: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Address1 is Required'),
+	address2: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Address2 is Required'),
+	city: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('City is Required'),
+	state: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('State is Required'),
+	zipcode: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Zipcode is Required'),
+});
+
 
 /**
  * The form layout/html.
@@ -15,6 +25,7 @@ import {emptyValidation} from "./validation";
 
 const PaymentForm = props => {
 	const {total, form: {isSubmitting = false} = {}} = props || {}
+	console.log(props)
 	return <Form>
 		<Container>
 			<Row>
@@ -22,12 +33,12 @@ const PaymentForm = props => {
 					<Card>
 						<Card.Header className="text-left font-weight-bold">Shipping</Card.Header>
 						<Card.Body>
-							<Input prefix="Name:" title="Name:" name="name" type="text" validator={emptyValidation}/>
-							<Input prefix="Address 1:" title="Address 1:" name="address1" type="text" validator={emptyValidation}/>
-							<Input prefix="Address 2:" title="Address 2:" name="address2" type="text" validator={emptyValidation}/>
-							<Input prefix="City:" title="City:" name="city" type="text" validator={emptyValidation}/>
-							<Input prefix="State:" title="State:" name="state" type="text" validator={emptyValidation}/>
-							<Input prefix="Zipcode:" title="Zipcode:" name="zipcode" type="text" validator={emptyValidation}/>
+							<Input title="Name:" name="name" type="text"/>
+							<Input title="Address 1:" name="address1" type="text"/>
+							<Input title="Address 2:" name="address2" type="text"/>
+							<Input title="City:" name="city" type="text"/>
+							<Input title="State:" name="state" type="text"/>
+							<Input title="Zipcode:" name="zipcode" type="text"/>
 						</Card.Body>
 					</Card>
 				</Col>
@@ -75,26 +86,10 @@ const CheckoutController = props => {
 				state: 'UT',
 				zipcode: '84602',
 			} }
+			validationSchema={ checkoutSchema }
 			validateOnChange={ false }
 			validateOnBlur={ false }
-			validate={ values => {
-				const errors = {};
-				const {name, address1, city, state, zipcode} = values || {}
-				if (_.isEmpty(name)) {
-					errors.name = 'Name is Required'
-				} else if (_.isEmpty(address1)) {
-					errors.address1 = 'Address is Required'
-				} else if (_.isEmpty(city)) {
-					errors.city = 'City is Required'
-				} else if (_.isEmpty(state)) {
-					errors.state = 'state is Required'
-				} else if (_.isEmpty(zipcode)) {
-					errors.zipcode = 'City is Required'
-				}
-				return errors
-			} }
-			onSubmit={ async (values, actions) => {
-				console.log('onsubmit')
+			onSubmit={ (values, actions, c) => {
 				actions.setSubmitting(true)
 				setTimeout(async () => {
 					const {total, name, address1, address2, city, state, zipcode,} = values || {}
@@ -118,10 +113,10 @@ const CheckoutController = props => {
 };
 
 const Input = (props) => {
-	const {prefix,validator=()=>{}}=props||{}
-	return <Field name={ props.name } >{ rProps => {
-		const {field:{value}={},form={}}=rProps||{}
-		const message=validator(value,prefix)
+	return <Field name={ props.name }>{ rProps => {
+		const {form, field} = rProps || {}
+		const {name} = field || {}
+		const {errors} = form || {}
 		return (<bs.Form.Group>
 				{ props.title &&
 				<div style={ {float: 'left'} }>
@@ -134,8 +129,8 @@ const Input = (props) => {
 					placeholder={ props.placeholder }
 					{ ...rProps.field }
 				/>
-				{ !_.isEmpty(message) &&form.touched[props.name] &&
-				<div className="text-danger text-left">{ message }</div>
+				{ !_.isEmpty(errors[name]) && form.touched[name] &&
+				<div className="text-danger text-left">{ errors[name] }</div>
 				}
 			</bs.Form.Group>
 		)
