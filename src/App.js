@@ -12,6 +12,7 @@ import FooterContainer from "./footer";
 import Details from './product-detail';
 import Cart from "./cart";
 import Checkout from "./Checkout";
+import Receipt from "./Receipt";
 
 function App(props) {
   return (
@@ -56,6 +57,9 @@ function App(props) {
                 </Route>
                 <Route path='/checkout'>
                   <Checkout />
+                </Route>
+                <Route path='/receipt'>
+                  <Receipt />
                 </Route>
               </Switch>
             </bs.Col>

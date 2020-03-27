@@ -1,13 +1,17 @@
-import React, {useContext} from "react";
+import React, {useContext, useState} from "react";
 import AppContext from "./context";
 import * as bs from 'react-bootstrap'
 import {Card, Col, Container, Row} from 'react-bootstrap'
 import {Field, Form, Formik} from 'formik'
-import CreditCardInput from 'react-credit-card-input';
 import * as _ from 'lodash'
-import axios from 'axios'
 import * as Yup from 'yup';
+import {CardElement, Elements, useElements, useStripe} from '@stripe/react-stripe-js';
+import {loadStripe} from '@stripe/stripe-js';
+import axios from 'axios'
+import {useHistory} from "react-router-dom";
 
+const stripePromise = loadStripe('pk_test_RSHnc9ZcLlNQKCa1BiEGr86r00H8LL7B0S');
+//
 const checkoutSchema = Yup.object().shape({
 	name: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Name is Required'),
 	address1: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Address1 is Required'),
@@ -17,15 +21,8 @@ const checkoutSchema = Yup.object().shape({
 	zipcode: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Zipcode is Required'),
 });
 
-
-/**
- * The form layout/html.
- * This component needs finishing.
- */
-
 const PaymentForm = props => {
-	const {total, form: {isSubmitting = false} = {}} = props || {}
-	console.log(props)
+	const {total, form: {isSubmitting = false} = {},changePaymentInfo=()=>{}} = props || {}
 	return <Form>
 		<Container>
 			<Row>
@@ -46,7 +43,7 @@ const PaymentForm = props => {
 					<Card>
 						<Card.Header className="text-left font-weight-bold">Payment</Card.Header>
 						<Card.Body>
-							<CreditCardInput fieldClassName="input"/>
+							<CardElement onChange={changePaymentInfo}/>
 							<bs.Button
 								type="submit"
 								className="w-50 btn-success"
@@ -70,11 +67,17 @@ const PaymentForm = props => {
 
 const CheckoutController = props => {
 	const globalState = useContext(AppContext)
+	const [paymentInfo,setPaymentInfo]=useState({complete:false})
 	const {
 		getCartTotal = () => {
-		}
+		},
+		clearCart=()=>{}
 	} = globalState || {}
 	const total = getCartTotal(); // context.getCartTotal()
+	const elements = useElements();
+	const stripe = useStripe();
+	const history = useHistory();
+	const {setError}=props||{}
 	return (
 		<Formik
 			initialValues={ {
@@ -90,6 +93,12 @@ const CheckoutController = props => {
 			validateOnChange={ false }
 			validateOnBlur={ false }
 			onSubmit={ (values, actions, c) => {
+				const {complete}=paymentInfo||{}
+				if(!complete){
+					actions.setSubmitting(false)
+					setError('Payment information is not complete')
+					return
+				}
 				actions.setSubmitting(true)
 				setTimeout(async () => {
 					const {total, name, address1, address2, city, state, zipcode,} = values || {}
@@ -99,7 +108,25 @@ const CheckoutController = props => {
 						payment_intent: {}
 					}
 					try {
-						axios.post('http://localhost:8000/sale/', params);
+						setError('')
+						const {data:{client_secret}={}}=await axios.post('http://localhost:8000/sale/', params);
+						const result=await stripe.confirmCardPayment(client_secret, {
+							payment_method: {
+								card: elements.getElement(CardElement),
+								billing_details: {
+									name: 'Jenny Rosen',
+								},
+							},
+						})
+						const {error}=result||{}
+						if(!_.isEmpty(error)){
+							setError('Payment Error is found')
+						}else {
+							setError('')
+							history.push('/receipt')
+							clearCart()
+						}
+						// const cardElement = elements.getElement(CardElement);
 					} catch (e) {
 					} finally {
 						actions.setSubmitting(false)
@@ -107,7 +134,11 @@ const CheckoutController = props => {
 				}, 1000)
 			} }
 		>{ form => (
-			<PaymentForm form={ form } total={ total }/>
+			<PaymentForm
+				form={ form }
+				total={ total }
+				setError={setError}
+				changePaymentInfo={(value)=>setPaymentInfo(value)}/>
 		) }</Formik>
 	)
 };
@@ -139,10 +170,14 @@ const Input = (props) => {
 
 
 const Checkout = (props) => {
+	const [error,setError]=useState('')
 	return (
 		<div className='cart-container'>
+			{!_.isEmpty(error)&&<span className='text-danger'>{error}</span>}
 			<h2 className='header-title'>Checkout</h2>
-			<CheckoutController/>
+			<Elements stripe={ stripePromise }>
+				<CheckoutController error={error} setError={setError}/>
+			</Elements>
 		</div>
 	)
 };

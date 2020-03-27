@@ -56,6 +56,10 @@ export default class AppProvider extends React.Component {
 		this.setState({cart: updatedCart})
 	}
 	
+	clearCart =()=>{
+		this.setState({cart:{}})
+	}
+	
 	render() {
 		return (
 			<AppContext.Provider value={ {
@@ -63,6 +67,7 @@ export default class AppProvider extends React.Component {
 				addToCart: this.addToCart,
 				removeFromCart: this.removeFromCart,
 				getCartTotal: this.getCartTotal,
+				clearCart:this.clearCart
 			} }>
 				<App/>
 			</AppContext.Provider>
